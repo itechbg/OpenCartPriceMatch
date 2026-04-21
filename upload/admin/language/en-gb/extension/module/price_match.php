@@ -66,3 +66,4 @@ $_['button_filter']          = 'Filter';
 // Errors
 $_['error_permission']       = 'Warning: You do not have permission to modify the Price Match module!';
 $_['error_warning']          = 'Warning: Please check the form carefully for errors!';
+$_['error_no_selection']     = 'Please select at least one item to delete!';

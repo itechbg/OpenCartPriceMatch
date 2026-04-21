@@ -19,7 +19,7 @@ class ModelExtensionModulePriceMatch extends Model {
                 `admin_comment`    TEXT             NOT NULL,
                 `date_added`       DATETIME         NOT NULL,
                 PRIMARY KEY (`price_match_id`)
-            ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
         ");
     }
 

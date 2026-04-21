@@ -27,3 +27,4 @@ $_['error_email']              = 'E-Mail address does not appear to be valid!';
 $_['error_competitor_name']    = 'Competitor store name required!';
 $_['error_competitor_url']     = 'Competitor URL required!';
 $_['error_competitor_price']   = 'Please enter a valid competitor price!';
+$_['error_invalid_request']    = 'Invalid request!';

@@ -57,6 +57,17 @@ class ControllerExtensionModulePriceMatch extends Controller {
                 : $this->config->get($field);
         }
 
+        // Language strings for the template
+        $lang_keys = array(
+            'heading_title', 'text_edit', 'text_enabled', 'text_disabled', 'text_yes', 'text_no',
+            'text_pending', 'text_approved', 'text_list',
+            'tab_general', 'entry_status', 'entry_notification', 'entry_admin_email', 'entry_status_default',
+            'button_save', 'button_cancel',
+        );
+        foreach ($lang_keys as $key) {
+            $data[$key] = $this->language->get($key);
+        }
+
         $data['header']      = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');
         $data['footer']      = $this->load->controller('common/footer');
@@ -176,6 +187,14 @@ class ControllerExtensionModulePriceMatch extends Controller {
         $data['filter_email']   = $filter_email;
         $data['filter_status']  = $filter_status;
         $data['user_token']     = $this->session->data['user_token'];
+        $data['text_no_results']  = $this->language->get('text_no_results');
+        $data['text_confirm']     = $this->language->get('text_confirm');
+        $data['text_all_statuses']= $this->language->get('text_all_statuses');
+        $data['text_pending']     = $this->language->get('text_pending');
+        $data['text_approved']    = $this->language->get('text_approved');
+        $data['text_rejected']    = $this->language->get('text_rejected');
+        $data['text_view']        = $this->language->get('text_view');
+        $data['error_no_selection'] = $this->language->get('error_no_selection');
 
         $data['delete'] = $this->url->link('extension/module/price_match/delete', 'user_token=' . $this->session->data['user_token'], true);
 
@@ -267,6 +286,18 @@ class ControllerExtensionModulePriceMatch extends Controller {
         $data['action'] = $this->url->link('extension/module/price_match/view', 'user_token=' . $this->session->data['user_token'] . '&price_match_id=' . $price_match_id, true);
         $data['back']   = $this->url->link('extension/module/price_match/requests', 'user_token=' . $this->session->data['user_token'], true);
         $data['user_token'] = $this->session->data['user_token'];
+
+        // Language strings for the view template
+        $view_lang_keys = array(
+            'heading_title', 'text_view', 'text_pending', 'text_approved', 'text_rejected',
+            'label_product', 'label_customer', 'label_email', 'label_telephone',
+            'label_competitor_name', 'label_competitor_url', 'label_competitor_price',
+            'label_status', 'label_date_added', 'label_admin_comment',
+            'entry_comment', 'button_save', 'button_back',
+        );
+        foreach ($view_lang_keys as $key) {
+            $data[$key] = $this->language->get($key);
+        }
 
         $data['header']      = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');

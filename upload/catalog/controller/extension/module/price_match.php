@@ -144,7 +144,7 @@ class ControllerExtensionModulePriceMatch extends Controller {
                 $json['success'] = $this->language->get('text_success');
             }
         } else {
-            $json['error']['warning'] = 'Invalid request method.';
+            $json['error']['warning'] = $this->language->get('error_invalid_request');
         }
 
         $this->response->addHeader('Content-Type: application/json');
