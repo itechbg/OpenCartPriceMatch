@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+    <name>Price Match Module</name>
+    <code>price_match</code>
+    <version>1.0.0</version>
+    <author>iTech.bg</author>
+    <link>https://itech.bg</link>
+
+    <!--
+        Inject price_match_url and price_match flag into the product page controller
+        so the Twig template can render the "Price Match" button.
+    -->
+    <file path="catalog/controller/product/product.php">
+        <operation>
+            <search><![CDATA[$this->response->setOutput($this->load->view('product/product', $data));]]></search>
+            <add position="before"><![CDATA[
+if ($this->config->get('module_price_match_status')) {
+    $this->load->language('extension/module/price_match');
+    $data['price_match_url'] = $this->url->link('extension/module/price_match', 'product_id=' . $product_id, true);
+    $data['price_match']     = true;
+    $data['text_price_match'] = $this->language->get('button_price_match');
+} else {
+    $data['price_match']     = false;
+    $data['price_match_url'] = '';
+    $data['text_price_match'] = '';
+}
+            ]]></add>
+        </operation>
+    </file>
+
+    <!--
+        Inject the Price Match button after the price display on the product page template.
+    -->
+    <file path="catalog/view/theme/*/template/product/product.twig">
+        <operation>
+            <search><![CDATA[{{ price }}]]></search>
+            <add position="after"><![CDATA[
+{% if price_match %}
+<div class="price-match-wrapper" style="margin-top:10px;">
+  <a href="javascript:void(0);"
+     class="btn btn-default btn-sm"
+     id="button-price-match"
+     data-toggle="modal"
+     data-target="#modal-price-match"
+     data-url="{{ price_match_url }}">
+    <i class="fa fa-tags"></i> {{ text_price_match }}
+  </a>
+</div>
+
+<!-- Price Match Modal -->
+<div id="modal-price-match" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal-price-match-label">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="modal-price-match-label">{{ text_price_match }}</h4>
+      </div>
+      <div class="modal-body" id="modal-price-match-body">
+        <div class="text-center"><i class="fa fa-spinner fa-spin fa-2x"></i></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+$('#button-price-match').on('click', function() {
+    var url = $(this).data('url');
+    $.ajax({
+        url:      url,
+        type:     'GET',
+        dataType: 'json',
+        success: function(json) {
+            if (json['html']) {
+                $('#modal-price-match-body').html(json['html']);
+            }
+        }
+    });
+});
+</script>
+{% endif %}
+            ]]></add>
+        </operation>
+    </file>
+</modification>

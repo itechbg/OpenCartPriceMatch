@@ -1,0 +1,102 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="pull-right">
+        <button type="submit" form="form-price-match" data-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary">
+          <i class="fa fa-save"></i>
+        </button>
+        <a href="{{ cancel }}" data-toggle="tooltip" title="{{ button_cancel }}" class="btn btn-default">
+          <i class="fa fa-reply"></i>
+        </a>
+      </div>
+      <h1>{{ heading_title }}</h1>
+      <ul class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+        <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div class="container-fluid">
+    {% if error_warning %}
+    <div class="alert alert-danger alert-dismissible">
+      <i class="fa fa-exclamation-circle"></i> {{ error_warning }}
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+    {% endif %}
+
+    {% if success %}
+    <div class="alert alert-success alert-dismissible">
+      <i class="fa fa-check-circle"></i> {{ success }}
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+    {% endif %}
+
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">
+          <i class="fa fa-tag"></i> {{ text_edit }}
+          <a href="{{ requests_url }}" class="btn btn-info btn-xs pull-right">
+            <i class="fa fa-list"></i> {{ text_list }}
+          </a>
+        </h3>
+      </div>
+
+      <div class="panel-body">
+        <form action="{{ action }}" method="post" enctype="multipart/form-data" id="form-price-match" class="form-horizontal">
+
+          <ul class="nav nav-tabs">
+            <li class="active"><a href="#tab-general" data-toggle="tab">{{ tab_general }}</a></li>
+          </ul>
+
+          <div class="tab-content">
+            <div class="tab-pane active" id="tab-general">
+
+              <div class="form-group">
+                <label class="col-sm-2 control-label" for="input-status">{{ entry_status }}</label>
+                <div class="col-sm-10">
+                  <select name="module_price_match_status" id="input-status" class="form-control">
+                    <option value="1" {% if module_price_match_status == '1' %}selected="selected"{% endif %}>{{ text_enabled }}</option>
+                    <option value="0" {% if module_price_match_status != '1' %}selected="selected"{% endif %}>{{ text_disabled }}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="col-sm-2 control-label" for="input-notification">{{ entry_notification }}</label>
+                <div class="col-sm-10">
+                  <select name="module_price_match_notification" id="input-notification" class="form-control">
+                    <option value="1" {% if module_price_match_notification == '1' %}selected="selected"{% endif %}>{{ text_yes }}</option>
+                    <option value="0" {% if module_price_match_notification != '1' %}selected="selected"{% endif %}>{{ text_no }}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="col-sm-2 control-label" for="input-admin-email">{{ entry_admin_email }}</label>
+                <div class="col-sm-10">
+                  <input type="text" name="module_price_match_admin_email" value="{{ module_price_match_admin_email }}" placeholder="{{ entry_admin_email }}" id="input-admin-email" class="form-control" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="col-sm-2 control-label" for="input-status-default">{{ entry_status_default }}</label>
+                <div class="col-sm-10">
+                  <select name="module_price_match_status_default" id="input-status-default" class="form-control">
+                    <option value="0" {% if module_price_match_status_default == '0' or module_price_match_status_default == '' %}selected="selected"{% endif %}>{{ text_pending }}</option>
+                    <option value="1" {% if module_price_match_status_default == '1' %}selected="selected"{% endif %}>{{ text_approved }}</option>
+                  </select>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{{ footer }}
