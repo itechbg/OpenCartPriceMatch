@@ -1,0 +1,130 @@
+<div class="price-match-form-container">
+  <p class="text-muted">{{ text_description }}</p>
+
+  <div id="price-match-success" class="alert alert-success" style="display:none;"></div>
+  <div id="price-match-error-warning" class="alert alert-danger" style="display:none;"></div>
+
+  <form id="form-price-match" method="post">
+    <input type="hidden" name="product_id" value="{{ product_id }}" />
+
+    <div class="row">
+      <div class="col-sm-6">
+        <div class="form-group" id="price-match-firstname-group">
+          <label class="control-label" for="pm-firstname">{{ entry_firstname }} <span class="text-danger">*</span></label>
+          <input type="text" name="firstname" id="pm-firstname" value="{{ firstname }}" class="form-control" placeholder="{{ entry_firstname }}" />
+          <div class="text-danger" id="pm-error-firstname"></div>
+        </div>
+      </div>
+      <div class="col-sm-6">
+        <div class="form-group" id="price-match-lastname-group">
+          <label class="control-label" for="pm-lastname">{{ entry_lastname }} <span class="text-danger">*</span></label>
+          <input type="text" name="lastname" id="pm-lastname" value="{{ lastname }}" class="form-control" placeholder="{{ entry_lastname }}" />
+          <div class="text-danger" id="pm-error-lastname"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-sm-6">
+        <div class="form-group" id="price-match-email-group">
+          <label class="control-label" for="pm-email">{{ entry_email }} <span class="text-danger">*</span></label>
+          <input type="email" name="email" id="pm-email" value="{{ email }}" class="form-control" placeholder="{{ entry_email }}" />
+          <div class="text-danger" id="pm-error-email"></div>
+        </div>
+      </div>
+      <div class="col-sm-6">
+        <div class="form-group">
+          <label class="control-label" for="pm-telephone">{{ entry_telephone }}</label>
+          <input type="text" name="telephone" id="pm-telephone" value="{{ telephone }}" class="form-control" placeholder="{{ entry_telephone }}" />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group" id="price-match-competitor-name-group">
+      <label class="control-label" for="pm-competitor-name">{{ entry_competitor_name }} <span class="text-danger">*</span></label>
+      <input type="text" name="competitor_name" id="pm-competitor-name" class="form-control" placeholder="{{ entry_competitor_name }}" />
+      <div class="text-danger" id="pm-error-competitor-name"></div>
+    </div>
+
+    <div class="form-group" id="price-match-competitor-url-group">
+      <label class="control-label" for="pm-competitor-url">{{ entry_competitor_url }} <span class="text-danger">*</span></label>
+      <input type="url" name="competitor_url" id="pm-competitor-url" class="form-control" placeholder="https://" />
+      <div class="text-danger" id="pm-error-competitor-url"></div>
+    </div>
+
+    <div class="form-group" id="price-match-competitor-price-group">
+      <label class="control-label" for="pm-competitor-price">{{ entry_competitor_price }} <span class="text-danger">*</span></label>
+      <input type="number" name="competitor_price" id="pm-competitor-price" step="0.01" min="0.01" class="form-control" placeholder="0.00" />
+      <div class="text-danger" id="pm-error-competitor-price"></div>
+    </div>
+
+    <div class="form-group">
+      <label class="control-label" for="pm-comment">{{ entry_comment }}</label>
+      <textarea name="comment" id="pm-comment" rows="3" class="form-control" placeholder="{{ entry_comment }}"></textarea>
+    </div>
+
+    <div class="form-group">
+      <button type="button" id="btn-price-match-submit" class="btn btn-primary btn-block">
+        <i class="fa fa-paper-plane"></i> {{ button_submit }}
+      </button>
+    </div>
+  </form>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var sendUrl = '{{ send_url }}';
+
+    function clearPriceMatchErrors() {
+        $('#price-match-error-warning').hide().html('');
+        $('#pm-error-firstname').html('');
+        $('#pm-error-lastname').html('');
+        $('#pm-error-email').html('');
+        $('#pm-error-competitor-name').html('');
+        $('#pm-error-competitor-url').html('');
+        $('#pm-error-competitor-price').html('');
+    }
+
+    $('#btn-price-match-submit').on('click', function() {
+        clearPriceMatchErrors();
+
+        var formData = $('#form-price-match').serialize();
+
+        $.ajax({
+            url:      sendUrl,
+            type:     'POST',
+            data:     formData,
+            dataType: 'json',
+            success: function(json) {
+                if (json['success']) {
+                    $('#form-price-match').hide();
+                    $('#price-match-success').html(json['success']).show();
+                }
+                if (json['error']) {
+                    if (json['error']['warning']) {
+                        $('#price-match-error-warning').html(json['error']['warning']).show();
+                    }
+                    if (json['error']['firstname']) {
+                        $('#pm-error-firstname').html(json['error']['firstname']);
+                    }
+                    if (json['error']['lastname']) {
+                        $('#pm-error-lastname').html(json['error']['lastname']);
+                    }
+                    if (json['error']['email']) {
+                        $('#pm-error-email').html(json['error']['email']);
+                    }
+                    if (json['error']['competitor_name']) {
+                        $('#pm-error-competitor-name').html(json['error']['competitor_name']);
+                    }
+                    if (json['error']['competitor_url']) {
+                        $('#pm-error-competitor-url').html(json['error']['competitor_url']);
+                    }
+                    if (json['error']['competitor_price']) {
+                        $('#pm-error-competitor-price').html(json['error']['competitor_price']);
+                    }
+                }
+            }
+        });
+    });
+})();
+</script>
