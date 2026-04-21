@@ -118,7 +118,7 @@ CREATE TABLE `oc_price_match` (
     `admin_comment`    TEXT          NOT NULL,
     `date_added`       DATETIME      NOT NULL,
     PRIMARY KEY (`price_match_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 ```
 
 The table is **dropped on uninstall**.
