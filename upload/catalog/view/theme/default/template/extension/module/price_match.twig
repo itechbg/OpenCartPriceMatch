@@ -88,6 +88,9 @@
     $('#btn-price-match-submit').on('click', function() {
         clearPriceMatchErrors();
 
+        var $btn = $(this);
+        $btn.prop('disabled', true);
+
         var formData = $('#form-price-match').serialize();
 
         $.ajax({
@@ -101,6 +104,7 @@
                     $('#price-match-success').html(json['success']).show();
                 }
                 if (json['error']) {
+                    $btn.prop('disabled', false);
                     if (json['error']['warning']) {
                         $('#price-match-error-warning').html(json['error']['warning']).show();
                     }
@@ -123,6 +127,9 @@
                         $('#pm-error-competitor-price').html(json['error']['competitor_price']);
                     }
                 }
+            },
+            error: function() {
+                $btn.prop('disabled', false);
             }
         });
     });

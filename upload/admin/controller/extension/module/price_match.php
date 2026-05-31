@@ -50,7 +50,15 @@ class ControllerExtensionModulePriceMatch extends Controller {
         $data['user_token'] = $this->session->data['user_token'];
 
         // Settings
-        $fields = array('module_price_match_status', 'module_price_match_notification', 'module_price_match_admin_email', 'module_price_match_status_default');
+        $fields = array(
+            'module_price_match_status',
+            'module_price_match_notification',
+            'module_price_match_admin_email',
+            'module_price_match_status_default',
+            'module_price_match_display_trigger',
+            'module_price_match_display_delay',
+            'module_price_match_scroll_percent',
+        );
         foreach ($fields as $field) {
             $data[$field] = isset($this->request->post[$field])
                 ? $this->request->post[$field]
@@ -62,6 +70,9 @@ class ControllerExtensionModulePriceMatch extends Controller {
             'heading_title', 'text_edit', 'text_enabled', 'text_disabled', 'text_yes', 'text_no',
             'text_pending', 'text_approved', 'text_list',
             'tab_general', 'entry_status', 'entry_notification', 'entry_admin_email', 'entry_status_default',
+            'entry_display_trigger', 'entry_display_delay', 'entry_display_scroll_percent',
+            'text_trigger_button', 'text_trigger_always', 'text_trigger_delay',
+            'text_trigger_exit', 'text_trigger_scroll',
             'button_save', 'button_cancel',
         );
         foreach ($lang_keys as $key) {
@@ -92,6 +103,9 @@ class ControllerExtensionModulePriceMatch extends Controller {
 
         if (isset($this->error['warning'])) {
             $data['error_warning'] = $this->error['warning'];
+        } elseif (isset($this->session->data['error_warning'])) {
+            $data['error_warning'] = $this->session->data['error_warning'];
+            unset($this->session->data['error_warning']);
         } else {
             $data['error_warning'] = '';
         }

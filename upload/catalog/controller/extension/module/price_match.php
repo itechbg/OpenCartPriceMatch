@@ -110,18 +110,27 @@ class ControllerExtensionModulePriceMatch extends Controller {
 
                         $subject = sprintf('[%s] New Price Match Request - %s', $this->config->get('config_name'), $product_name);
 
+                        // Sanitise user-supplied strings to prevent email header injection
+                        $safe_firstname      = str_replace(["\r", "\n"], '', $post['firstname']);
+                        $safe_lastname       = str_replace(["\r", "\n"], '', $post['lastname']);
+                        $safe_email          = str_replace(["\r", "\n"], '', $post['email']);
+                        $safe_telephone      = str_replace(["\r", "\n"], '', isset($post['telephone']) ? $post['telephone'] : '');
+                        $safe_competitor_name = str_replace(["\r", "\n"], '', $post['competitor_name']);
+                        $safe_competitor_url  = str_replace(["\r", "\n"], '', $post['competitor_url']);
+                        $safe_comment         = str_replace(["\r", "\n\r"], ["\n", "\n", "\n"], isset($post['comment']) ? $post['comment'] : '');
+
                         $message  = "A new price match request has been submitted.\n\n";
                         $message .= "Product: " . $product_name . "\n";
-                        $message .= "Customer: " . $post['firstname'] . " " . $post['lastname'] . "\n";
-                        $message .= "Email: " . $post['email'] . "\n";
-                        if (!empty($post['telephone'])) {
-                            $message .= "Telephone: " . $post['telephone'] . "\n";
+                        $message .= "Customer: " . $safe_firstname . " " . $safe_lastname . "\n";
+                        $message .= "Email: " . $safe_email . "\n";
+                        if (!empty($safe_telephone)) {
+                            $message .= "Telephone: " . $safe_telephone . "\n";
                         }
-                        $message .= "\nCompetitor Store: " . $post['competitor_name'] . "\n";
-                        $message .= "Competitor URL: " . $post['competitor_url'] . "\n";
+                        $message .= "\nCompetitor Store: " . $safe_competitor_name . "\n";
+                        $message .= "Competitor URL: " . $safe_competitor_url . "\n";
                         $message .= "Competitor Price: " . number_format((float)$post['competitor_price'], 2) . "\n";
-                        if (!empty($post['comment'])) {
-                            $message .= "\nAdditional Comments:\n" . $post['comment'] . "\n";
+                        if (!empty($safe_comment)) {
+                            $message .= "\nAdditional Comments:\n" . $safe_comment . "\n";
                         }
                         $message .= "\nRequest ID: #" . $request_id . "\n";
 

@@ -8,7 +8,7 @@
 
     <!--
         Inject price_match_url and price_match flag into the product page controller
-        so the Twig template can render the "Price Match" button.
+        so the Twig template can render the "Price Match" button and trigger logic.
     -->
     <file path="catalog/controller/product/product.php">
         <operation>
@@ -16,20 +16,26 @@
             <add position="before"><![CDATA[
 if ($this->config->get('module_price_match_status')) {
     $this->load->language('extension/module/price_match');
-    $data['price_match_url'] = $this->url->link('extension/module/price_match', 'product_id=' . $product_id, true);
-    $data['price_match']     = true;
-    $data['text_price_match'] = $this->language->get('button_price_match');
+    $data['price_match_url']          = $this->url->link('extension/module/price_match', 'product_id=' . $product_id, true);
+    $data['price_match']              = true;
+    $data['text_price_match']         = $this->language->get('button_price_match');
+    $data['price_match_trigger']      = $this->config->get('module_price_match_display_trigger') ?: 'button';
+    $data['price_match_delay']        = (int)$this->config->get('module_price_match_display_delay') ?: 5;
+    $data['price_match_scroll_pct']   = (int)$this->config->get('module_price_match_scroll_percent') ?: 50;
 } else {
-    $data['price_match']     = false;
-    $data['price_match_url'] = '';
-    $data['text_price_match'] = '';
+    $data['price_match']              = false;
+    $data['price_match_url']          = '';
+    $data['text_price_match']         = '';
+    $data['price_match_trigger']      = 'button';
+    $data['price_match_delay']        = 5;
+    $data['price_match_scroll_pct']   = 50;
 }
             ]]></add>
         </operation>
     </file>
 
     <!--
-        Inject the Price Match button after the price display on the product page template.
+        Inject the Price Match button/inline form and all display-trigger JS after the price.
     -->
     <file path="catalog/view/theme/*/template/product/product.twig">
         <operation>
@@ -37,17 +43,28 @@ if ($this->config->get('module_price_match_status')) {
             <add position="after"><![CDATA[
 {% if price_match %}
 <div class="price-match-wrapper" style="margin-top:10px;">
+
+  {# Show the button for button-click and auto-trigger modes (hidden for 'always') #}
+  {% if price_match_trigger != 'always' %}
   <a href="javascript:void(0);"
      class="btn btn-default btn-sm"
      id="button-price-match"
-     data-toggle="modal"
-     data-target="#modal-price-match"
-     data-url="{{ price_match_url }}">
+     data-url="{{ price_match_url|e('html_attr') }}">
     <i class="fa fa-tags"></i> {{ text_price_match }}
   </a>
+  {% endif %}
+
+  {# Inline container — visible only for 'always' trigger #}
+  {% if price_match_trigger == 'always' %}
+  <div id="price-match-inline">
+    <div class="text-center"><i class="fa fa-spinner fa-spin fa-2x"></i></div>
+  </div>
+  {% endif %}
+
 </div>
 
-<!-- Price Match Modal -->
+<!-- Price Match Modal (used by button / delay / exit / scroll triggers) -->
+{% if price_match_trigger != 'always' %}
 <div id="modal-price-match" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal-price-match-label">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -61,21 +78,102 @@ if ($this->config->get('module_price_match_status')) {
     </div>
   </div>
 </div>
+{% endif %}
 
 <script type="text/javascript">
-$('#button-price-match').on('click', function() {
-    var url = $(this).data('url');
-    $.ajax({
-        url:      url,
-        type:     'GET',
-        dataType: 'json',
-        success: function(json) {
-            if (json['html']) {
-                $('#modal-price-match-body').html(json['html']);
+(function () {
+    var pmUrl      = '{{ price_match_url|e('js') }}';
+    var pmTrigger  = '{{ price_match_trigger|e('js') }}';
+    var pmDelay    = {{ price_match_delay }};
+    var pmScroll   = {{ price_match_scroll_pct }};
+    var pmFired    = false;
+    var pmLoaded   = false;
+    var PM_SESSION_KEY = 'pm_shown_{{ product_id }}';
+
+    /* ---------- helpers ---------- */
+    function pmSessionFired() {
+        try { return sessionStorage.getItem(PM_SESSION_KEY) === '1'; } catch(e) { return false; }
+    }
+    function pmMarkFired() {
+        try { sessionStorage.setItem(PM_SESSION_KEY, '1'); } catch(e) {}
+        pmFired = true;
+    }
+
+    function loadPriceMatchForm(callback) {
+        if (pmLoaded) { if (callback) callback(); return; }
+        $.ajax({
+            url: pmUrl, type: 'GET', dataType: 'json',
+            success: function (json) {
+                if (json['html']) {
+                    pmLoaded = true;
+                    if (pmTrigger === 'always') {
+                        $('#price-match-inline').html(json['html']);
+                    } else {
+                        $('#modal-price-match-body').html(json['html']);
+                    }
+                    if (callback) callback();
+                }
             }
-        }
-    });
-});
+        });
+    }
+
+    function openPriceMatchModal() {
+        if (pmFired || pmSessionFired()) return;
+        pmMarkFired();
+        loadPriceMatchForm(function () {
+            $('#modal-price-match').modal('show');
+        });
+    }
+
+    /* ---------- button click ---------- */
+    if (pmTrigger === 'button') {
+        $('#button-price-match').on('click', function () {
+            loadPriceMatchForm(function () {
+                $('#modal-price-match').modal('show');
+            });
+        });
+    }
+
+    /* ---------- always visible ---------- */
+    if (pmTrigger === 'always') {
+        $(document).ready(function () {
+            loadPriceMatchForm();
+        });
+    }
+
+    /* ---------- time delay ---------- */
+    if (pmTrigger === 'delay') {
+        $(document).ready(function () {
+            setTimeout(openPriceMatchModal, pmDelay * 1000);
+        });
+    }
+
+    /* ---------- exit intent ---------- */
+    if (pmTrigger === 'exit') {
+        $(document).on('mouseleave', function (e) {
+            if (e.clientY < 10) {
+                openPriceMatchModal();
+            }
+        });
+    }
+
+    /* ---------- scroll depth ---------- */
+    if (pmTrigger === 'scroll') {
+        var pmScrollThrottle = false;
+        $(window).on('scroll', function () {
+            if (pmScrollThrottle || pmFired || pmSessionFired()) return;
+            pmScrollThrottle = true;
+            setTimeout(function () {
+                pmScrollThrottle = false;
+                var scrolled = $(window).scrollTop();
+                var docHeight = $(document).height() - $(window).height();
+                if (docHeight > 0 && (scrolled / docHeight * 100) >= pmScroll) {
+                    openPriceMatchModal();
+                }
+            }, 150);
+        });
+    }
+})();
 </script>
 {% endif %}
             ]]></add>
