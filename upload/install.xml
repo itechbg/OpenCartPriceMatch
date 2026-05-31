@@ -88,14 +88,16 @@ if ($this->config->get('module_price_match_status')) {
     var pmScroll   = {{ price_match_scroll_pct }};
     var pmFired    = false;
     var pmLoaded   = false;
-    var PM_SESSION_KEY = 'pm_shown_{{ product_id }}';
+    var pmSessionKey      = 'pm_shown_{{ product_id|e('js') }}';
+    var pmExitThreshold   = 10;   // px from top of viewport for exit-intent detection
+    var pmScrollThrottleMs = 150; // ms between scroll-depth checks
 
     /* ---------- helpers ---------- */
     function pmSessionFired() {
-        try { return sessionStorage.getItem(PM_SESSION_KEY) === '1'; } catch(e) { return false; }
+        try { return sessionStorage.getItem(pmSessionKey) === '1'; } catch(e) { return false; }
     }
     function pmMarkFired() {
-        try { sessionStorage.setItem(PM_SESSION_KEY, '1'); } catch(e) {}
+        try { sessionStorage.setItem(pmSessionKey, '1'); } catch(e) {}
         pmFired = true;
     }
 
@@ -151,7 +153,7 @@ if ($this->config->get('module_price_match_status')) {
     /* ---------- exit intent ---------- */
     if (pmTrigger === 'exit') {
         $(document).on('mouseleave', function (e) {
-            if (e.clientY < 10) {
+            if (e.clientY < pmExitThreshold) {
                 openPriceMatchModal();
             }
         });
@@ -167,10 +169,10 @@ if ($this->config->get('module_price_match_status')) {
                 pmScrollThrottle = false;
                 var scrolled = $(window).scrollTop();
                 var docHeight = $(document).height() - $(window).height();
-                if (docHeight > 0 && (scrolled / docHeight * 100) >= pmScroll) {
+                if (docHeight > 0 && (scrolled / docHeight) >= (pmScroll / 100)) {
                     openPriceMatchModal();
                 }
-            }, 150);
+            }, pmScrollThrottleMs);
         });
     }
 })();

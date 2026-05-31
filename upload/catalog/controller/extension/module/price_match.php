@@ -117,7 +117,7 @@ class ControllerExtensionModulePriceMatch extends Controller {
                         $safe_telephone      = str_replace(["\r", "\n"], '', isset($post['telephone']) ? $post['telephone'] : '');
                         $safe_competitor_name = str_replace(["\r", "\n"], '', $post['competitor_name']);
                         $safe_competitor_url  = str_replace(["\r", "\n"], '', $post['competitor_url']);
-                        $safe_comment         = str_replace(["\r", "\n\r"], ["\n", "\n", "\n"], isset($post['comment']) ? $post['comment'] : '');
+                        $safe_comment         = str_replace(["\r\n", "\r", "\n"], "\n", isset($post['comment']) ? $post['comment'] : '');
 
                         $message  = "A new price match request has been submitted.\n\n";
                         $message .= "Product: " . $product_name . "\n";
