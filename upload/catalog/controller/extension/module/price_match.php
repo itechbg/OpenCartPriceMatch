@@ -133,8 +133,8 @@ class ControllerExtensionModulePriceMatch extends Controller {
 
                     if ($admin_email) {
                         $product_name = $product_info['name'];
-                        $safe_product_name = str_replace(array("\r", "\n"), '', $product_name);
-                        $safe_store_name = str_replace(array("\r", "\n"), '', $this->config->get('config_name'));
+                        $safe_product_name = preg_replace('/[\x00-\x1F\x7F]+/u', ' ', $product_name);
+                        $safe_store_name = preg_replace('/[\x00-\x1F\x7F]+/u', ' ', $this->config->get('config_name'));
                         $subject = sprintf('[%s] New Price Match Request - %s', $safe_store_name, $safe_product_name);
 
                         // Sanitise user-supplied strings to prevent email header injection

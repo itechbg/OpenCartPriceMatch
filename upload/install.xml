@@ -22,9 +22,9 @@ if ($this->config->get('module_price_match_status')) {
         $price_match_trigger = 'button';
     }
 
-    $price_match_delay = (int)$this->config->get('module_price_match_display_delay');
-    if ($price_match_delay < 1 || $price_match_delay > 300) {
-        $price_match_delay = 5;
+    $price_match_delay_seconds = (int)$this->config->get('module_price_match_display_delay');
+    if ($price_match_delay_seconds < 1 || $price_match_delay_seconds > 300) {
+        $price_match_delay_seconds = 5;
     }
 
     $price_match_scroll_pct = (int)$this->config->get('module_price_match_scroll_percent');
@@ -36,7 +36,7 @@ if ($this->config->get('module_price_match_status')) {
     $data['price_match']              = true;
     $data['text_price_match']         = $this->language->get('button_price_match');
     $data['price_match_trigger']      = $price_match_trigger;
-    $data['price_match_delay']        = $price_match_delay;
+    $data['price_match_delay']        = $price_match_delay_seconds;
     $data['price_match_scroll_pct']   = $price_match_scroll_pct;
 } else {
     $data['price_match']              = false;
@@ -104,7 +104,7 @@ if ($this->config->get('module_price_match_status')) {
     var pmScroll   = {{ price_match_scroll_pct }};
     var pmFired    = false;
     var pmLoaded   = false;
-    var pmSessionKey      = 'pm_shown_{{ product_id|e('js') }}';
+    var pmSessionKey      = 'price_match_shown_{{ product_id|e('js') }}_' + pmTrigger;
     var pmExitThreshold   = 10;   // px from top of viewport for exit-intent detection
     var pmScrollThrottleMs = 150; // ms between scroll-depth checks
 

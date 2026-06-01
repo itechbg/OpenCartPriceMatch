@@ -354,14 +354,14 @@ class ControllerExtensionModulePriceMatch extends Controller {
         $this->load->model('extension/module/price_match');
 
         $url = $this->buildListUrl();
-        $has_permission = $this->validate();
+        $has_delete_permission = $this->validate();
 
-        if (isset($this->request->post['selected']) && $has_permission) {
+        if (isset($this->request->post['selected']) && $has_delete_permission) {
             foreach ($this->request->post['selected'] as $price_match_id) {
                 $this->model_extension_module_price_match->deleteRequest((int)$price_match_id);
             }
             $this->session->data['success'] = $this->language->get('text_success_delete');
-        } elseif (!$has_permission) {
+        } elseif (!$has_delete_permission) {
             $this->session->data['error_warning'] = $this->language->get('error_permission');
         } else {
             $this->session->data['error_warning'] = $this->language->get('error_no_selection');
@@ -398,11 +398,11 @@ class ControllerExtensionModulePriceMatch extends Controller {
         $url = '';
 
         if (isset($this->request->get['filter_product']) && $this->request->get['filter_product'] !== '') {
-            $url .= '&filter_product=' . urlencode(html_entity_decode((string)$this->request->get['filter_product'], ENT_QUOTES, 'UTF-8'));
+            $url .= '&filter_product=' . urlencode((string)$this->request->get['filter_product']);
         }
 
         if (isset($this->request->get['filter_email']) && $this->request->get['filter_email'] !== '') {
-            $url .= '&filter_email=' . urlencode(html_entity_decode((string)$this->request->get['filter_email'], ENT_QUOTES, 'UTF-8'));
+            $url .= '&filter_email=' . urlencode((string)$this->request->get['filter_email']);
         }
 
         if (isset($this->request->get['filter_status']) && $this->request->get['filter_status'] !== '') {
