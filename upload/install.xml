@@ -16,12 +16,28 @@
             <add position="before"><![CDATA[
 if ($this->config->get('module_price_match_status')) {
     $this->load->language('extension/module/price_match');
+    $allowed_triggers = array('button', 'always', 'delay', 'exit', 'scroll');
+    $price_match_trigger = (string)$this->config->get('module_price_match_display_trigger');
+    if (!in_array($price_match_trigger, $allowed_triggers)) {
+        $price_match_trigger = 'button';
+    }
+
+    $price_match_delay = (int)$this->config->get('module_price_match_display_delay');
+    if ($price_match_delay < 1 || $price_match_delay > 300) {
+        $price_match_delay = 5;
+    }
+
+    $price_match_scroll_pct = (int)$this->config->get('module_price_match_scroll_percent');
+    if ($price_match_scroll_pct < 1 || $price_match_scroll_pct > 100) {
+        $price_match_scroll_pct = 50;
+    }
+
     $data['price_match_url']          = $this->url->link('extension/module/price_match', 'product_id=' . $product_id, true);
     $data['price_match']              = true;
     $data['text_price_match']         = $this->language->get('button_price_match');
-    $data['price_match_trigger']      = $this->config->get('module_price_match_display_trigger') ?: 'button';
-    $data['price_match_delay']        = (int)$this->config->get('module_price_match_display_delay') ?: 5;
-    $data['price_match_scroll_pct']   = (int)$this->config->get('module_price_match_scroll_percent') ?: 50;
+    $data['price_match_trigger']      = $price_match_trigger;
+    $data['price_match_delay']        = $price_match_delay;
+    $data['price_match_scroll_pct']   = $price_match_scroll_pct;
 } else {
     $data['price_match']              = false;
     $data['price_match_url']          = '';

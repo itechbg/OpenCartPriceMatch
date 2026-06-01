@@ -157,6 +157,37 @@ upload/
 
 ---
 
+## Verified Behaviour Checklist (OpenCart 3.x)
+
+- Module install/uninstall creates and drops `oc_price_match`
+- Frontend request submission validates required fields and price value
+- Frontend now validates competitor URL format (`http://` or `https://`)
+- Submission is rejected for invalid/non-existent `product_id`
+- Admin can filter, sort, view, update status/admin notes, and bulk delete requests
+- Request list filters/sort/page state is preserved when navigating between list/view/delete
+
+---
+
+## Known Limitations
+
+- The extension relies on OpenCart’s default jQuery + Bootstrap modal behavior on product pages
+- OCMOD injection targets `{{ price }}` in product twig templates; heavily customized themes may need manual adjustment
+- No customer-facing file upload/captcha workflow is included by default
+
+---
+
+## Release-Readiness Checklist
+
+1. Lint all module PHP files (`php -l`)
+2. Validate `upload/install.xml` is well-formed XML
+3. Package only the `upload/` directory for installer distribution
+4. Install on a clean OpenCart 3.x instance and refresh modifications
+5. Smoke-test each display trigger mode (button/always/delay/exit/scroll)
+6. Verify admin list filtering/sorting/pagination and delete flow
+7. Verify notification email content and sender settings in your mail transport
+
+---
+
 ## Author
 
 **iTech.bg** — [https://itech.bg](https://itech.bg)

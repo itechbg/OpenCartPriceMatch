@@ -10,8 +10,23 @@ class ControllerExtensionModulePriceMatch extends Controller {
         $this->load->language('extension/module/price_match');
         $this->document->setTitle($this->language->get('heading_title'));
         $this->load->model('setting/setting');
+        $allowed_triggers = array('button', 'always', 'delay', 'exit', 'scroll');
 
         if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
+            if (!isset($this->request->post['module_price_match_display_trigger']) || !in_array($this->request->post['module_price_match_display_trigger'], $allowed_triggers)) {
+                $this->request->post['module_price_match_display_trigger'] = 'button';
+            }
+
+            $this->request->post['module_price_match_display_delay'] = isset($this->request->post['module_price_match_display_delay']) ? (int)$this->request->post['module_price_match_display_delay'] : 5;
+            if ($this->request->post['module_price_match_display_delay'] < 1 || $this->request->post['module_price_match_display_delay'] > 300) {
+                $this->request->post['module_price_match_display_delay'] = 5;
+            }
+
+            $this->request->post['module_price_match_scroll_percent'] = isset($this->request->post['module_price_match_scroll_percent']) ? (int)$this->request->post['module_price_match_scroll_percent'] : 50;
+            if ($this->request->post['module_price_match_scroll_percent'] < 1 || $this->request->post['module_price_match_scroll_percent'] > 100) {
+                $this->request->post['module_price_match_scroll_percent'] = 50;
+            }
+
             $this->model_setting_setting->editSetting('module_price_match', $this->request->post);
             $this->session->data['success'] = $this->language->get('text_success');
             $this->response->redirect($this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=module', true));
@@ -65,6 +80,18 @@ class ControllerExtensionModulePriceMatch extends Controller {
                 : $this->config->get($field);
         }
 
+        if (!in_array($data['module_price_match_display_trigger'], $allowed_triggers)) {
+            $data['module_price_match_display_trigger'] = 'button';
+        }
+        $data['module_price_match_display_delay'] = (int)$data['module_price_match_display_delay'];
+        if ($data['module_price_match_display_delay'] < 1 || $data['module_price_match_display_delay'] > 300) {
+            $data['module_price_match_display_delay'] = 5;
+        }
+        $data['module_price_match_scroll_percent'] = (int)$data['module_price_match_scroll_percent'];
+        if ($data['module_price_match_scroll_percent'] < 1 || $data['module_price_match_scroll_percent'] > 100) {
+            $data['module_price_match_scroll_percent'] = 50;
+        }
+
         // Language strings for the template
         $lang_keys = array(
             'heading_title', 'text_edit', 'text_enabled', 'text_disabled', 'text_yes', 'text_no',
@@ -73,7 +100,7 @@ class ControllerExtensionModulePriceMatch extends Controller {
             'entry_display_trigger', 'entry_display_delay', 'entry_display_scroll_percent',
             'text_trigger_button', 'text_trigger_always', 'text_trigger_delay',
             'text_trigger_exit', 'text_trigger_scroll',
-            'button_save', 'button_cancel',
+            'button_save', 'button_cancel', 'button_filter', 'button_delete', 'button_reset',
         );
         foreach ($lang_keys as $key) {
             $data[$key] = $this->language->get($key);
@@ -93,6 +120,8 @@ class ControllerExtensionModulePriceMatch extends Controller {
         $this->load->language('extension/module/price_match');
         $this->document->setTitle($this->language->get('heading_title'));
         $this->load->model('extension/module/price_match');
+
+        $url = $this->buildListUrl();
 
         if (isset($this->session->data['success'])) {
             $data['success'] = $this->session->data['success'];
@@ -173,11 +202,6 @@ class ControllerExtensionModulePriceMatch extends Controller {
         }
 
         // Sorting URLs
-        $url = '';
-        if ($filter_product) $url .= '&filter_product=' . urlencode($filter_product);
-        if ($filter_email)   $url .= '&filter_email='   . urlencode($filter_email);
-        if ($filter_status !== '') $url .= '&filter_status=' . $filter_status;
-
         $data['sort_price_match_id']  = $this->url->link('extension/module/price_match/requests', 'user_token=' . $this->session->data['user_token'] . '&sort=pm.price_match_id&order=' . ($sort == 'pm.price_match_id' && $order == 'ASC' ? 'DESC' : 'ASC') . $url, true);
         $data['sort_product']         = $this->url->link('extension/module/price_match/requests', 'user_token=' . $this->session->data['user_token'] . '&sort=pd.name&order='           . ($sort == 'pd.name'           && $order == 'ASC' ? 'DESC' : 'ASC') . $url, true);
         $data['sort_email']           = $this->url->link('extension/module/price_match/requests', 'user_token=' . $this->session->data['user_token'] . '&sort=pm.email&order='           . ($sort == 'pm.email'           && $order == 'ASC' ? 'DESC' : 'ASC') . $url, true);
@@ -211,6 +235,7 @@ class ControllerExtensionModulePriceMatch extends Controller {
         $data['error_no_selection'] = $this->language->get('error_no_selection');
 
         $data['delete'] = $this->url->link('extension/module/price_match/delete', 'user_token=' . $this->session->data['user_token'], true);
+        $data['reset']  = $this->url->link('extension/module/price_match/requests', 'user_token=' . $this->session->data['user_token'], true);
 
         $data['header']      = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');
@@ -228,6 +253,7 @@ class ControllerExtensionModulePriceMatch extends Controller {
         $this->load->model('extension/module/price_match');
 
         $price_match_id = isset($this->request->get['price_match_id']) ? (int)$this->request->get['price_match_id'] : 0;
+        $list_url = $this->buildListUrl();
 
         if ($this->request->server['REQUEST_METHOD'] == 'POST') {
             if (!$this->validate()) {
@@ -235,7 +261,7 @@ class ControllerExtensionModulePriceMatch extends Controller {
             } else {
                 $this->model_extension_module_price_match->editRequest($price_match_id, $this->request->post);
                 $this->session->data['success'] = $this->language->get('text_success_update');
-                $this->response->redirect($this->url->link('extension/module/price_match/view', 'user_token=' . $this->session->data['user_token'] . '&price_match_id=' . $price_match_id, true));
+                $this->response->redirect($this->url->link('extension/module/price_match/view', 'user_token=' . $this->session->data['user_token'] . '&price_match_id=' . $price_match_id . $list_url, true));
             }
         }
 
@@ -263,17 +289,17 @@ class ControllerExtensionModulePriceMatch extends Controller {
         );
         $data['breadcrumbs'][] = array(
             'text' => $this->language->get('text_list'),
-            'href' => $this->url->link('extension/module/price_match/requests', 'user_token=' . $this->session->data['user_token'], true),
+            'href' => $this->url->link('extension/module/price_match/requests', 'user_token=' . $this->session->data['user_token'] . $list_url, true),
         );
         $data['breadcrumbs'][] = array(
             'text' => $this->language->get('text_view'),
-            'href' => $this->url->link('extension/module/price_match/view', 'user_token=' . $this->session->data['user_token'] . '&price_match_id=' . $price_match_id, true),
+            'href' => $this->url->link('extension/module/price_match/view', 'user_token=' . $this->session->data['user_token'] . '&price_match_id=' . $price_match_id . $list_url, true),
         );
 
         $request_info = $this->model_extension_module_price_match->getRequest($price_match_id);
 
         if (!$request_info) {
-            $this->response->redirect($this->url->link('extension/module/price_match/requests', 'user_token=' . $this->session->data['user_token'], true));
+            $this->response->redirect($this->url->link('extension/module/price_match/requests', 'user_token=' . $this->session->data['user_token'] . $list_url, true));
         }
 
         $data['price_match_id']   = $request_info['price_match_id'];
@@ -297,8 +323,8 @@ class ControllerExtensionModulePriceMatch extends Controller {
             ? $this->request->post['admin_comment']
             : $request_info['admin_comment'];
 
-        $data['action'] = $this->url->link('extension/module/price_match/view', 'user_token=' . $this->session->data['user_token'] . '&price_match_id=' . $price_match_id, true);
-        $data['back']   = $this->url->link('extension/module/price_match/requests', 'user_token=' . $this->session->data['user_token'], true);
+        $data['action'] = $this->url->link('extension/module/price_match/view', 'user_token=' . $this->session->data['user_token'] . '&price_match_id=' . $price_match_id . $list_url, true);
+        $data['back']   = $this->url->link('extension/module/price_match/requests', 'user_token=' . $this->session->data['user_token'] . $list_url, true);
         $data['user_token'] = $this->session->data['user_token'];
 
         // Language strings for the view template
@@ -327,16 +353,21 @@ class ControllerExtensionModulePriceMatch extends Controller {
         $this->load->language('extension/module/price_match');
         $this->load->model('extension/module/price_match');
 
-        if (isset($this->request->post['selected']) && $this->validate()) {
+        $url = $this->buildListUrl();
+        $has_permission = $this->validate();
+
+        if (isset($this->request->post['selected']) && $has_permission) {
             foreach ($this->request->post['selected'] as $price_match_id) {
                 $this->model_extension_module_price_match->deleteRequest((int)$price_match_id);
             }
             $this->session->data['success'] = $this->language->get('text_success_delete');
-        } else {
+        } elseif (!$has_permission) {
             $this->session->data['error_warning'] = $this->language->get('error_permission');
+        } else {
+            $this->session->data['error_warning'] = $this->language->get('error_no_selection');
         }
 
-        $this->response->redirect($this->url->link('extension/module/price_match/requests', 'user_token=' . $this->session->data['user_token'], true));
+        $this->response->redirect($this->url->link('extension/module/price_match/requests', 'user_token=' . $this->session->data['user_token'] . $url, true));
     }
 
     // -------------------------------------------------------------------------
@@ -361,5 +392,35 @@ class ControllerExtensionModulePriceMatch extends Controller {
         }
 
         return !$this->error;
+    }
+
+    private function buildListUrl() {
+        $url = '';
+
+        if (isset($this->request->get['filter_product']) && $this->request->get['filter_product'] !== '') {
+            $url .= '&filter_product=' . urlencode(html_entity_decode((string)$this->request->get['filter_product'], ENT_QUOTES, 'UTF-8'));
+        }
+
+        if (isset($this->request->get['filter_email']) && $this->request->get['filter_email'] !== '') {
+            $url .= '&filter_email=' . urlencode(html_entity_decode((string)$this->request->get['filter_email'], ENT_QUOTES, 'UTF-8'));
+        }
+
+        if (isset($this->request->get['filter_status']) && $this->request->get['filter_status'] !== '') {
+            $url .= '&filter_status=' . (int)$this->request->get['filter_status'];
+        }
+
+        if (isset($this->request->get['sort']) && $this->request->get['sort'] !== '') {
+            $url .= '&sort=' . urlencode((string)$this->request->get['sort']);
+        }
+
+        if (isset($this->request->get['order']) && $this->request->get['order'] !== '') {
+            $url .= '&order=' . urlencode((string)$this->request->get['order']);
+        }
+
+        if (isset($this->request->get['page']) && (int)$this->request->get['page'] > 1) {
+            $url .= '&page=' . (int)$this->request->get['page'];
+        }
+
+        return $url;
     }
 }

@@ -122,10 +122,15 @@ class ModelExtensionModulePriceMatch extends Model {
     }
 
     public function editRequest($price_match_id, $data) {
+        $status = isset($data['status']) ? (int)$data['status'] : 0;
+        if (!in_array($status, array(0, 1, 2))) {
+            $status = 0;
+        }
+
         $this->db->query("
             UPDATE `" . DB_PREFIX . "price_match`
             SET
-                `status`        = '" . (int)$data['status'] . "',
+                `status`        = '" . $status . "',
                 `admin_comment` = '" . $this->db->escape($data['admin_comment']) . "'
             WHERE `price_match_id` = '" . (int)$price_match_id . "'
         ");

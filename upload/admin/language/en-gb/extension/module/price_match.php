@@ -72,6 +72,7 @@ $_['button_approve']         = 'Approve';
 $_['button_reject']          = 'Reject';
 $_['button_back']            = 'Back';
 $_['button_filter']          = 'Filter';
+$_['button_reset']           = 'Reset';
 
 // Errors
 $_['error_permission']       = 'Warning: You do not have permission to modify the Price Match module!';

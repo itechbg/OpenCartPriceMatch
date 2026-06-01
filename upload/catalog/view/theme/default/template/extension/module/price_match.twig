@@ -33,9 +33,10 @@
         </div>
       </div>
       <div class="col-sm-6">
-        <div class="form-group">
+        <div class="form-group" id="price-match-telephone-group">
           <label class="control-label" for="pm-telephone">{{ entry_telephone }}</label>
           <input type="text" name="telephone" id="pm-telephone" value="{{ telephone }}" class="form-control" placeholder="{{ entry_telephone }}" />
+          <div class="text-danger" id="pm-error-telephone"></div>
         </div>
       </div>
     </div>
@@ -80,6 +81,7 @@
         $('#pm-error-firstname').html('');
         $('#pm-error-lastname').html('');
         $('#pm-error-email').html('');
+        $('#pm-error-telephone').html('');
         $('#pm-error-competitor-name').html('');
         $('#pm-error-competitor-url').html('');
         $('#pm-error-competitor-price').html('');
@@ -116,6 +118,9 @@
                     }
                     if (json['error']['email']) {
                         $('#pm-error-email').html(json['error']['email']);
+                    }
+                    if (json['error']['telephone']) {
+                        $('#pm-error-telephone').html(json['error']['telephone']);
                     }
                     if (json['error']['competitor_name']) {
                         $('#pm-error-competitor-name').html(json['error']['competitor_name']);
