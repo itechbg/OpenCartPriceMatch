@@ -40,6 +40,16 @@ $_['entry_status']           = 'Status';
 $_['entry_notification']     = 'Email Notification';
 $_['entry_admin_email']      = 'Notification Email';
 $_['entry_status_default']   = 'Default Request Status';
+$_['entry_display_trigger']       = 'Display Trigger';
+$_['entry_display_delay']         = 'Delay (seconds)';
+$_['entry_display_scroll_percent'] = 'Scroll Depth (%)';
+
+// Display trigger options
+$_['text_trigger_button'] = 'Button Click Only';
+$_['text_trigger_always'] = 'Always Visible (Inline)';
+$_['text_trigger_delay']  = 'Time Delay';
+$_['text_trigger_exit']   = 'Exit Intent';
+$_['text_trigger_scroll'] = 'Scroll Depth';
 
 // Labels
 $_['label_product']          = 'Product';
@@ -62,6 +72,7 @@ $_['button_approve']         = 'Approve';
 $_['button_reject']          = 'Reject';
 $_['button_back']            = 'Back';
 $_['button_filter']          = 'Filter';
+$_['button_reset']           = 'Reset';
 
 // Errors
 $_['error_permission']       = 'Warning: You do not have permission to modify the Price Match module!';

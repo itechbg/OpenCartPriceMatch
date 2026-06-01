@@ -91,6 +91,33 @@
                 </div>
               </div>
 
+              <div class="form-group">
+                <label class="col-sm-2 control-label" for="input-display-trigger">{{ entry_display_trigger }}</label>
+                <div class="col-sm-10">
+                  <select name="module_price_match_display_trigger" id="input-display-trigger" class="form-control">
+                    <option value="button" {% if module_price_match_display_trigger == 'button' or module_price_match_display_trigger == '' %}selected="selected"{% endif %}>{{ text_trigger_button }}</option>
+                    <option value="always" {% if module_price_match_display_trigger == 'always' %}selected="selected"{% endif %}>{{ text_trigger_always }}</option>
+                    <option value="delay"  {% if module_price_match_display_trigger == 'delay'  %}selected="selected"{% endif %}>{{ text_trigger_delay }}</option>
+                    <option value="exit"   {% if module_price_match_display_trigger == 'exit'   %}selected="selected"{% endif %}>{{ text_trigger_exit }}</option>
+                    <option value="scroll" {% if module_price_match_display_trigger == 'scroll' %}selected="selected"{% endif %}>{{ text_trigger_scroll }}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group" id="row-display-delay" style="display:none;">
+                <label class="col-sm-2 control-label" for="input-display-delay">{{ entry_display_delay }}</label>
+                <div class="col-sm-10">
+                  <input type="number" name="module_price_match_display_delay" id="input-display-delay" value="{{ module_price_match_display_delay ? module_price_match_display_delay : '5' }}" min="1" max="300" class="form-control" />
+                </div>
+              </div>
+
+              <div class="form-group" id="row-scroll-percent" style="display:none;">
+                <label class="col-sm-2 control-label" for="input-scroll-percent">{{ entry_display_scroll_percent }}</label>
+                <div class="col-sm-10">
+                  <input type="number" name="module_price_match_scroll_percent" id="input-scroll-percent" value="{{ module_price_match_scroll_percent ? module_price_match_scroll_percent : '50' }}" min="1" max="100" class="form-control" />
+                </div>
+              </div>
+
             </div>
           </div>
 
@@ -100,3 +127,15 @@
   </div>
 </div>
 {{ footer }}
+
+<script type="text/javascript">
+(function () {
+    function updateTriggerFields() {
+        var trigger = document.getElementById('input-display-trigger').value;
+        document.getElementById('row-display-delay').style.display  = (trigger === 'delay')  ? '' : 'none';
+        document.getElementById('row-scroll-percent').style.display = (trigger === 'scroll') ? '' : 'none';
+    }
+    document.getElementById('input-display-trigger').addEventListener('change', updateTriggerFields);
+    updateTriggerFields();
+})();
+</script>

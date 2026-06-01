@@ -45,30 +45,55 @@ class ControllerExtensionModulePriceMatch extends Controller {
     // Process the submitted form
     public function send() {
         $this->load->language('extension/module/price_match');
+        $this->load->model('catalog/product');
 
         $json = array();
 
         if ($this->request->server['REQUEST_METHOD'] == 'POST') {
+            if (!$this->config->get('module_price_match_status')) {
+                $json['error']['warning'] = $this->language->get('error_module_disabled');
+            }
+
             $post = $this->request->post;
 
+            $product_id = isset($post['product_id']) ? (int)$post['product_id'] : 0;
+            $product_info = $product_id ? $this->model_catalog_product->getProduct($product_id) : array();
+            if (!$product_info) {
+                $json['error']['warning'] = $this->language->get('error_product');
+            }
+
+            $firstname = isset($post['firstname']) ? trim($post['firstname']) : '';
+            $lastname = isset($post['lastname']) ? trim($post['lastname']) : '';
+            $email = isset($post['email']) ? trim($post['email']) : '';
+            $telephone = isset($post['telephone']) ? trim($post['telephone']) : '';
+            $competitor_name = isset($post['competitor_name']) ? trim($post['competitor_name']) : '';
+            $competitor_url = isset($post['competitor_url']) ? trim($post['competitor_url']) : '';
+            $comment = isset($post['comment']) ? trim($post['comment']) : '';
+
             // Validation
-            if (empty($post['firstname']) || utf8_strlen($post['firstname']) < 1 || utf8_strlen($post['firstname']) > 32) {
+            if ($firstname === '' || utf8_strlen($firstname) < 1 || utf8_strlen($firstname) > 32) {
                 $json['error']['firstname'] = $this->language->get('error_firstname');
             }
 
-            if (empty($post['lastname']) || utf8_strlen($post['lastname']) < 1 || utf8_strlen($post['lastname']) > 32) {
+            if ($lastname === '' || utf8_strlen($lastname) < 1 || utf8_strlen($lastname) > 32) {
                 $json['error']['lastname'] = $this->language->get('error_lastname');
             }
 
-            if (empty($post['email']) || !filter_var($post['email'], FILTER_VALIDATE_EMAIL)) {
+            if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $json['error']['email'] = $this->language->get('error_email');
             }
 
-            if (empty($post['competitor_name'])) {
+            if ($telephone !== '' && utf8_strlen($telephone) > 32) {
+                $json['error']['telephone'] = $this->language->get('error_telephone');
+            }
+
+            if ($competitor_name === '' || utf8_strlen($competitor_name) > 255) {
                 $json['error']['competitor_name'] = $this->language->get('error_competitor_name');
             }
 
-            if (empty($post['competitor_url'])) {
+            $url_is_valid = filter_var($competitor_url, FILTER_VALIDATE_URL);
+            $url_scheme = $url_is_valid ? strtolower((string)parse_url($competitor_url, PHP_URL_SCHEME)) : '';
+            if ($competitor_url === '' || !$url_is_valid || !in_array($url_scheme, array('http', 'https')) || utf8_strlen($competitor_url) > 512) {
                 $json['error']['competitor_url'] = $this->language->get('error_competitor_url');
             }
 
@@ -81,18 +106,21 @@ class ControllerExtensionModulePriceMatch extends Controller {
 
                 $customer_id = $this->customer->isLogged() ? $this->customer->getId() : 0;
                 $status_default = (int)$this->config->get('module_price_match_status_default');
+                if (!in_array($status_default, array(0, 1))) {
+                    $status_default = 0;
+                }
 
                 $request_id = $this->model_extension_module_price_match->addRequest(array(
-                    'product_id'       => isset($post['product_id']) ? (int)$post['product_id'] : 0,
+                    'product_id'       => $product_id,
                     'customer_id'      => $customer_id,
-                    'firstname'        => $post['firstname'],
-                    'lastname'         => $post['lastname'],
-                    'email'            => $post['email'],
-                    'telephone'        => isset($post['telephone']) ? $post['telephone'] : '',
-                    'competitor_name'  => $post['competitor_name'],
-                    'competitor_url'   => $post['competitor_url'],
+                    'firstname'        => $firstname,
+                    'lastname'         => $lastname,
+                    'email'            => $email,
+                    'telephone'        => $telephone,
+                    'competitor_name'  => $competitor_name,
+                    'competitor_url'   => $competitor_url,
                     'competitor_price' => (float)$post['competitor_price'],
-                    'comment'          => isset($post['comment']) ? $post['comment'] : '',
+                    'comment'          => $comment,
                     'status'           => $status_default,
                 ));
 
@@ -104,24 +132,32 @@ class ControllerExtensionModulePriceMatch extends Controller {
                     }
 
                     if ($admin_email) {
-                        $this->load->model('catalog/product');
-                        $product_info = $this->model_catalog_product->getProduct((int)$post['product_id']);
-                        $product_name = $product_info ? $product_info['name'] : 'Product #' . (int)$post['product_id'];
+                        $product_name = $product_info['name'];
+                        $safe_product_name = preg_replace('/[\x00-\x1F\x7F]+/u', ' ', $product_name);
+                        $safe_store_name = preg_replace('/[\x00-\x1F\x7F]+/u', ' ', $this->config->get('config_name'));
+                        $subject = sprintf('[%s] New Price Match Request - %s', $safe_store_name, $safe_product_name);
 
-                        $subject = sprintf('[%s] New Price Match Request - %s', $this->config->get('config_name'), $product_name);
+                        // Sanitise user-supplied strings to prevent email header injection
+                        $safe_firstname      = str_replace(array("\r", "\n"), '', $firstname);
+                        $safe_lastname       = str_replace(array("\r", "\n"), '', $lastname);
+                        $safe_email          = str_replace(array("\r", "\n"), '', $email);
+                        $safe_telephone      = str_replace(array("\r", "\n"), '', $telephone);
+                        $safe_competitor_name = str_replace(array("\r", "\n"), '', $competitor_name);
+                        $safe_competitor_url  = str_replace(array("\r", "\n"), '', $competitor_url);
+                        $safe_comment         = str_replace(array("\r\n", "\r", "\n"), "\n", $comment);
 
                         $message  = "A new price match request has been submitted.\n\n";
                         $message .= "Product: " . $product_name . "\n";
-                        $message .= "Customer: " . $post['firstname'] . " " . $post['lastname'] . "\n";
-                        $message .= "Email: " . $post['email'] . "\n";
-                        if (!empty($post['telephone'])) {
-                            $message .= "Telephone: " . $post['telephone'] . "\n";
+                        $message .= "Customer: " . $safe_firstname . " " . $safe_lastname . "\n";
+                        $message .= "Email: " . $safe_email . "\n";
+                        if (!empty($safe_telephone)) {
+                            $message .= "Telephone: " . $safe_telephone . "\n";
                         }
-                        $message .= "\nCompetitor Store: " . $post['competitor_name'] . "\n";
-                        $message .= "Competitor URL: " . $post['competitor_url'] . "\n";
+                        $message .= "\nCompetitor Store: " . $safe_competitor_name . "\n";
+                        $message .= "Competitor URL: " . $safe_competitor_url . "\n";
                         $message .= "Competitor Price: " . number_format((float)$post['competitor_price'], 2) . "\n";
-                        if (!empty($post['comment'])) {
-                            $message .= "\nAdditional Comments:\n" . $post['comment'] . "\n";
+                        if (!empty($safe_comment)) {
+                            $message .= "\nAdditional Comments:\n" . $safe_comment . "\n";
                         }
                         $message .= "\nRequest ID: #" . $request_id . "\n";
 
@@ -139,6 +175,7 @@ class ControllerExtensionModulePriceMatch extends Controller {
                         $mail->setText($message);
                         $mail->send();
                     }
+
                 }
 
                 $json['success'] = $this->language->get('text_success');
